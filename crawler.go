@@ -60,12 +60,19 @@ func crawlProfile(client *mongo.Client, url string) {
 		profile.Location = e.ChildText(".p-label")
 	})
 
-	c.OnHTML("#user-repositories-list h3 a", func(e *colly.HTMLElement) {
+	// Updated repository selector with more precise targeting
+	c.OnHTML("li[itemprop='owns'] div.d-inline-block.mb-1 h3 a", func(e *colly.HTMLElement) {
 		repoPath := e.Attr("href")
 		if repoPath != "" {
 			repoURL := "https://github.com" + repoPath
 			profile.Repositories = append(profile.Repositories, repoURL)
+			fmt.Printf("Found repository: %s\n", repoURL)
 		}
+	})
+
+	// Add debug information
+	c.OnResponse(func(r *colly.Response) {
+		fmt.Printf("Status Code: %d for %s\n", r.StatusCode, r.Request.URL)
 	})
 
 	c.OnScraped(func(_ *colly.Response) {
