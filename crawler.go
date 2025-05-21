@@ -12,7 +12,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-const mongoURI = "mongodb+srv://singhksumit2004:XLRI%40581@cluster0.wtzocnh.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+const mongoURI = //your MondoDB connection link
 
 type GitHubProfile struct {
 	URL          string   `bson:"url"`
@@ -60,8 +60,7 @@ func crawlProfile(client *mongo.Client, url string) {
 		profile.Location = e.ChildText(".p-label")
 	})
 
-	// Updated repository selector with more precise targeting
-	c.OnHTML("li[itemprop='owns'] div.d-inline-block.mb-1 h3 a", func(e *colly.HTMLElement) {
+	c.OnHTML("#user-repositories-list h3 a", func(e *colly.HTMLElement) {
 		repoPath := e.Attr("href")
 		if repoPath != "" {
 			repoURL := "https://github.com" + repoPath
