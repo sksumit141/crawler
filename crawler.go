@@ -14,7 +14,7 @@ import (
 
 const mongoURI = //your mongodb uri
 
-type GitHubProfile struct { // Removed extra blank line
+type GitHubProfile struct { 
 	URL          string   `bson:"url"`
 	Username     string   `bson:"username"`
 	Bio          string   `bson:"bio"`
@@ -75,7 +75,7 @@ func crawlProfile(client *mongo.Client, url string, depth int, maxDepth int) {
 		}
 	})
 
-	// Add followers collector
+	
 	c.OnHTML("a[data-hovercard-type='user']", func(e *colly.HTMLElement) {
 		userLink := e.Attr("href")
 		if userLink != "" && !visitedProfiles["https://github.com"+userLink] {
@@ -83,7 +83,7 @@ func crawlProfile(client *mongo.Client, url string, depth int, maxDepth int) {
 		}
 	})
 
-	// Add debug information
+	
 	c.OnResponse(func(r *colly.Response) {
 		fmt.Printf("Status Code: %d for %s\n", r.StatusCode, r.Request.URL)
 	})
@@ -109,12 +109,12 @@ func main() {
 	maxDepth := 3
 	seedProfiles := []string{
 		"https://github.com/sksumit141",
-		// Add more seed profiles here
+		
 	}
 
-	// Continuous crawling loop
+	
 	for {
-		visitedProfiles = make(map[string]bool) // Reset visited profiles for each cycle
+		visitedProfiles = make(map[string]bool) 
 
 		fmt.Println("\n🔄 Starting new crawl cycle...")
 		for _, profile := range seedProfiles {
