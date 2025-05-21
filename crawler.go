@@ -12,14 +12,14 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-const mongoURI = //your MondoDB connection link
+const mongoURI =//your MondoDB connection URL
 
-type GitHubProfile struct {
-	URL          string   `bson:"url"`
-	Username     string   `bson:"username"`
-	Bio          string   `bson:"bio"`
-	Location     string   `bson:"location"`
-	Repositories []string `bson:"repositories"`
+type GitHubProfile struct {  // Removed extra blank line
+    URL          string   `bson:"url"`
+    Username     string   `bson:"username"`
+    Bio          string   `bson:"bio"`
+    Location     string   `bson:"location"`
+    Repositories []string `bson:"repositories"`
 }
 
 func storeProfile(client *mongo.Client, profile GitHubProfile) {
