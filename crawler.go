@@ -12,14 +12,14 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-const mongoURI =//your MondoDB connection URL
+const mongoURI = "mongodb+srv://singhksumit2004:XLRI%40581@cluster0.wtzocnh.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
 
-type GitHubProfile struct {  // Removed extra blank line
-    URL          string   `bson:"url"`
-    Username     string   `bson:"username"`
-    Bio          string   `bson:"bio"`
-    Location     string   `bson:"location"`
-    Repositories []string `bson:"repositories"`
+type GitHubProfile struct { // Removed extra blank line
+	URL          string   `bson:"url"`
+	Username     string   `bson:"username"`
+	Bio          string   `bson:"bio"`
+	Location     string   `bson:"location"`
+	Repositories []string `bson:"repositories"`
 }
 
 func storeProfile(client *mongo.Client, profile GitHubProfile) {
@@ -32,8 +32,14 @@ func storeProfile(client *mongo.Client, profile GitHubProfile) {
 	}
 }
 
-func crawlProfile(client *mongo.Client, url string) {
-	fmt.Println("🔍 Scraping profile:", url)
+var visitedProfiles = make(map[string]bool)
+
+func crawlProfile(client *mongo.Client, url string, depth int, maxDepth int) {
+	if depth > maxDepth || visitedProfiles[url] {
+		return
+	}
+	visitedProfiles[url] = true
+	fmt.Printf("🔍 Scraping profile [%d/%d]: %s\n", depth, maxDepth, url)
 
 	profile := GitHubProfile{URL: url}
 
@@ -69,6 +75,14 @@ func crawlProfile(client *mongo.Client, url string) {
 		}
 	})
 
+	// Add followers collector
+	c.OnHTML("a[data-hovercard-type='user']", func(e *colly.HTMLElement) {
+		userLink := e.Attr("href")
+		if userLink != "" && !visitedProfiles["https://github.com"+userLink] {
+			go crawlProfile(client, "https://github.com"+userLink, depth+1, maxDepth)
+		}
+	})
+
 	// Add debug information
 	c.OnResponse(func(r *colly.Response) {
 		fmt.Printf("Status Code: %d for %s\n", r.StatusCode, r.Request.URL)
@@ -80,7 +94,7 @@ func crawlProfile(client *mongo.Client, url string) {
 	})
 
 	if err := c.Visit(url); err != nil {
-		log.Println("Error visiting URL:", err)
+		log.Printf("Error visiting %s: %v\n", url, err)
 	}
 }
 
@@ -92,7 +106,22 @@ func main() {
 	}
 	defer client.Disconnect(context.Background())
 
-	profileURL := "https://github.com/sksumit141"
+	maxDepth := 3
+	seedProfiles := []string{
+		"https://github.com/sksumit141",
+		// Add more seed profiles here
+	}
 
-	crawlProfile(client, profileURL)
+	// Continuous crawling loop
+	for {
+		visitedProfiles = make(map[string]bool) // Reset visited profiles for each cycle
+
+		fmt.Println("\n🔄 Starting new crawl cycle...")
+		for _, profile := range seedProfiles {
+			crawlProfile(client, profile, 0, maxDepth)
+		}
+
+		fmt.Println("\n😴 Waiting before next cycle...")
+		time.Sleep(5 * time.Minute) // Wait 5 minutes between cycles
+	}
 }
