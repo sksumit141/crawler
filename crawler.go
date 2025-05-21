@@ -108,7 +108,7 @@ func main() {
 
 	maxDepth := 3
 	seedProfiles := []string{
-		"https://github.com/sksumit141",
+		"https://github.com/sksumit141", //add more profiles
 		
 	}
 
